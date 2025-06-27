@@ -3,22 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Aksara chat</title>
+  <title>Chat P2P Kece</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <div id="name-section">
-    <h2>Masukkan Nama Anda</h2>
-    <input type="text" id="username" placeholder="Nama Anda" required>
-    <button onclick="startChat()">Masuk</button>
+    <h2>Masukkan Nama Kamu</h2>
+    <input type="text" id="username" placeholder="Nama kamu..." required>
+    <button onclick="startChat()">Masuk Chat</button>
   </div>
   <div id="chat-section" style="display: none;">
-    <h2>aksara from @amogenz</h2>
+    <h2>Room Chat</h2>
+    <div id="connection-status" class="status"></div>
     <button onclick="generateInvite()">Undang Teman</button>
     <p id="invite-link"></p>
     <div id="chat-box"></div>
-    <input type="text" id="message-input" placeholder="Ketik pesan...">
-    <button onclick="sendMessage()">Kirim</button>
+    <div class="input-container">
+      <input type="text" id="message-input" placeholder="Ketik pesan...">
+      <button onclick="sendMessage()">Kirim</button>
+    </div>
   </div>
 
   <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
