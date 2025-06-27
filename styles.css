@@ -1,51 +1,182 @@
 body {
-  font-family: Arial, sans-serif;
+  font-family: 'Segoe UI', Arial, sans-serif;
   display: flex;
   flex-direction: column;
   align-items: center;
-  background-color: #f0f0f0;
+  background: linear-gradient(135deg, #e0e7ff, #c3dafe);
   margin: 0;
   padding: 20px;
+  min-height: 100vh;
 }
+
 #name-section, #chat-section {
-  width: 100%;
-  max-width: 500px;
+  width: 90%;
+  max-width: 600px;
   background: white;
   padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
 }
+
+h2 {
+  color: #1e40af;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
 #chat-box {
-  height: 300px;
+  height: 400px;
   overflow-y: auto;
-  border: 1px solid #ccc;
+  padding: 15px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 15px;
+}
+
+/* Chat Bubble */
+.message {
+  margin: 10px 0;
+  padding: 10px 15px;
+  max-width: 70%;
+  border-radius: 12px;
+  line-height: 1.4;
+  position: relative;
+  word-wrap: break-word;
+}
+
+.message.sent {
+  background: #3b82f6;
+  color: white;
+  margin-left: auto;
+  border-bottom-right-radius: 4px;
+}
+
+.message.received {
+  background: #e5e7eb;
+  color: #1f2937;
+  margin-right: auto;
+  border-bottom-left-radius: 4px;
+}
+
+/* Input dan Tombol */
+input {
   padding: 10px;
-  margin-bottom: 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 16px;
+  outline: none;
+  transition: border-color 0.3s;
 }
-#message-input {
-  width: 80%;
-  padding: 8px;
-  margin-right: 10px;
+
+input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 5px rgba(59, 130, 246, 0.3);
 }
+
 button {
-  padding: 8px 16px;
-  background-color: #007bff;
+  padding: 10px 20px;
+  background: #1e40af;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
+  font-size: 16px;
+  transition: background 0.3s, transform 0.2s;
 }
+
 button:hover {
-  background-color: #0056b3;
+  background: #1e3a8a;
+  transform: translateY(-2px);
 }
-.message {
-  margin: 5px 0;
+
+button:active {
+  transform: translateY(0);
 }
-.message.sent {
-  text-align: right;
-  color: blue;
+
+.input-container {
+  display: flex;
+  gap: 10px;
+  align-items: center;
 }
-.message.received {
-  text-align: left;
-  color: green;
+
+#message-input {
+  flex: 1;
+}
+
+/* Status Koneksi */
+.status {
+  text-align: center;
+  padding: 8px;
+  border-radius: 6px;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.status:empty {
+  display: none;
+}
+
+.status::before {
+  content: '';
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.status:contains('Menghubungkan')::before,
+.status:contains('Menunggu')::before {
+  background: #f59e0b;
+  animation: pulse 1.5s infinite;
+}
+
+.status:contains('Terhubung')::before {
+  background: #22c55e;
+}
+
+.status:contains('Gagal')::before,
+.status:contains('Error')::before,
+.status:contains('terputus')::before {
+  background: #ef4444;
+}
+
+/* Animasi Loading */
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.4; }
+  100% { opacity: 1; }
+}
+
+/* Responsivitas */
+@media (max-width: 500px) {
+  #name-section, #chat-section {
+    width: 95%;
+    padding: 15px;
+  }
+
+  #chat-box {
+    height: 300px;
+  }
+
+  input, button {
+    font-size: 14px;
+  }
+}
+
+/* Scrollbar Styling */
+#chat-box::-webkit-scrollbar {
+  width: 8px;
+}
+
+#chat-box::-webkit-scrollbar-track {
+  background: #e5e7eb;
+  border-radius: 4px;
+}
+
+#chat-box::-webkit-scrollbar-thumb {
+  background: #3b82f6;
+  border-radius: 4px;
 }
