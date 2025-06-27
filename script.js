@@ -13,7 +13,7 @@ function startChat() {
 
   document.getElementById('name-section').style.display = 'none';
   document.getElementById('chat-section').style.display = 'block';
-  updateConnectionStatus('Menghubungkan ke server PeerJS...');
+  updateConnectionStatus('Menghubungkan ke server PeerJS...', 'connecting');
 
   if (!roomId) {
     roomId = generateRoomId();
@@ -40,7 +40,7 @@ function startChat() {
       : `${window.location.origin}${window.location.pathname}`;
     const inviteLink = `${baseUrl}?room=${roomId}`;
     document.getElementById('invite-link').innerHTML = `Kirim link ini ke teman: <a href="${inviteLink}" target="_blank">${inviteLink}</a>`;
-    updateConnectionStatus('Menunggu teman bergabung...');
+    updateConnectionStatus('Menunggu teman bergabung...', 'waiting');
 
     if (!isInitiator) {
       setTimeout(() => {
@@ -54,7 +54,7 @@ function startChat() {
       conn = connection;
       conn.on('open', () => {
         console.log('Koneksi masuk dari:', conn.peer);
-        updateConnectionStatus('Terhubung dengan teman!');
+        updateConnectionStatus('Terhubung dengan teman!', 'connected');
       });
       conn.on('data', (data) => {
         console.log('Pesan diterima:', data);
@@ -63,11 +63,11 @@ function startChat() {
       });
       conn.on('error', (err) => {
         console.error('Koneksi error:', err);
-        updateConnectionStatus('Gagal terhubung. Coba hubungkan lagi.');
+        updateConnectionStatus('Gagal terhubung. Coba hubungkan lagi.', 'error');
       });
       conn.on('close', () => {
         console.log('Koneksi ditutup:', conn.peer);
-        updateConnectionStatus('Teman terputus. Coba hubungkan lagi.');
+        updateConnectionStatus('Teman terputus. Coba hubungkan lagi.', 'disconnected');
         conn = null;
       });
     }
@@ -75,22 +75,27 @@ function startChat() {
 
   peer.on('error', (err) => {
     console.error('PeerJS error:', err);
-    updateConnectionStatus(`Error: ${err.type}. Coba refresh halaman atau ganti jaringan.`);
+    updateConnectionStatus(`Error: ${err.type}. Coba refresh halaman atau ganti jaringan.`, 'error');
     if (err.type === 'peer-unavailable' && !isInitiator) {
       setTimeout(promptForPeerConnection, 2000);
     }
   });
 
-  // Tambah event listener untuk tombol Enter
-  document.getElementById('message-input').addEventListener('keypress', (event) => {
-    if (event.key === 'Enter' && !event.shiftKey) {
-      event.preventDefault();
-      sendMessage();
-    }
-  });
-
   loadMessages();
 }
+
+// Tambah event listener Enter di luar startChat untuk keandalan
+document.addEventListener('DOMContentLoaded', () => {
+  const messageInput = document.getElementById('message-input');
+  if (messageInput) {
+    messageInput.addEventListener('keypress', (event) => {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage();
+      }
+    });
+  }
+});
 
 function promptForPeerConnection() {
   if (!conn || !conn.open) {
@@ -100,7 +105,7 @@ function promptForPeerConnection() {
       conn = peer.connect(otherPeerId);
       conn.on('open', () => {
         console.log('Terhubung ke peer:', otherPeerId);
-        updateConnectionStatus('Terhubung dengan teman!');
+        updateConnectionStatus('Terhubung dengan teman!', 'connected');
       });
       conn.on('data', (data) => {
         console.log('Pesan diterima:', data);
@@ -109,17 +114,17 @@ function promptForPeerConnection() {
       });
       conn.on('error', (err) => {
         console.error('Gagal terhubung ke peer:', otherPeerId, err);
-        updateConnectionStatus('Gagal terhubung. Pastikan nama teman benar.');
+        updateConnectionStatus('Gagal terhubung. Pastikan nama teman benar.', 'error');
         setTimeout(promptForPeerConnection, 2000);
       });
       conn.on('close', () => {
         console.log('Koneksi ditutup:', otherPeerId);
-        updateConnectionStatus('Teman terputus. Coba hubungkan lagi.');
+        updateConnectionStatus('Teman terputus. Coba hubungkan lagi.', 'disconnected');
         conn = null;
         setTimeout(promptForPeerConnection, 2000);
       });
     } else {
-      updateConnectionStatus('Menunggu teman bergabung...');
+      updateConnectionStatus('Menunggu teman bergabung...', 'waiting');
       setTimeout(promptForPeerConnection, 2000);
     }
   }
@@ -181,10 +186,10 @@ function generateRoomId() {
   return 'room-' + Math.random().toString(36).substr(2, 9);
 }
 
-function updateConnectionStatus(status) {
+function updateConnectionStatus(status, statusType) {
   const statusElement = document.createElement('p');
   statusElement.id = 'connection-status';
-  statusElement.className = 'status';
+  statusElement.className = `status status-${statusType}`;
   statusElement.textContent = status;
   const inviteLink = document.getElementById('invite-link');
   if (document.getElementById('connection-status')) {
