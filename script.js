@@ -2,7 +2,7 @@ let peer;
 let conn;
 let username;
 let roomId = new URLSearchParams(window.location.search).get('room');
-let isInitiator = !roomId; // Pengguna pertama adalah initiator
+let isInitiator = !roomId;
 
 function startChat() {
   username = document.getElementById('username').value.trim();
@@ -42,7 +42,6 @@ function startChat() {
     document.getElementById('invite-link').innerHTML = `Kirim link ini ke teman: <a href="${inviteLink}" target="_blank">${inviteLink}</a>`;
     updateConnectionStatus('Menunggu teman bergabung...');
 
-    // Jika bukan initiator, coba hubungkan ke peer lain
     if (!isInitiator) {
       setTimeout(() => {
         promptForPeerConnection();
@@ -79,6 +78,14 @@ function startChat() {
     updateConnectionStatus(`Error: ${err.type}. Coba refresh halaman atau ganti jaringan.`);
     if (err.type === 'peer-unavailable' && !isInitiator) {
       setTimeout(promptForPeerConnection, 2000);
+    }
+  });
+
+  // Tambah event listener untuk tombol Enter
+  document.getElementById('message-input').addEventListener('keypress', (event) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      sendMessage();
     }
   });
 
@@ -183,7 +190,7 @@ function updateConnectionStatus(status) {
   if (document.getElementById('connection-status')) {
     document.getElementById('connection-status').remove();
   }
-  inviteLink.insertAdjacentElement('afterend', statusElement);
+  inviteLink.insertAdjacentElement('beforebegin', statusElement);
 }
 
 if (roomId) {
