@@ -3,32 +3,32 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Aksara - P2P Chat</title>
+  <title>Chat P2P Kece</title>
   <link rel="stylesheet" href="styles.css">
-  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 </head>
 <body>
-  <div id="name-section" class="login-container">
-    <img src="https://i.imgur.com/T40wIM3.png" alt="Aksara Logo" class="login-logo">
-    <h1>Aksara</h1>
-    <div class="login-form">
-      <input type="text" id="username" placeholder="Masukkan nama Anda" autocomplete="off">
-      <button onclick="startChat()">Masuk Chat</button>
-    </div>
+  <div id="name-section">
+    <h2>Masukkan Nama Kamu</h2>
+    <input type="text" id="username" placeholder="Nama kamu..." required>
+    <button onclick="startChat()">Masuk Chat</button>
   </div>
   <div id="chat-section" style="display: none;">
-    <div class="chat-header">
-      <p id="invite-link"></p>
-      <button onclick="generateInvite()">Salin Link Undangan</button>
+    <img src="https://i.imgur.com/4hLGS4J.png" alt="Aksara Logo" class="chat-logo">
+    <h2>Aksara</h2>
+    <div id="connection-status" class="status"></div>
+    <div class="invite-container">
+      <button onclick="generateInvite()">Undang Teman</button>
+      <div id="invite-link" class="invite-link"></div>
     </div>
     <div id="chat-box"></div>
-    <p id="connection-status" class="status"></p>
     <div class="input-container">
       <input type="text" id="message-input" placeholder="Ketik pesan...">
-      <button class="send-button">✈</button>
+      <button onclick="sendMessage()" class="send-button"></button>
     </div>
+    <audio id="notification-sound" src="https://freesound.org/data/previews/316/316847_4939433-lq.mp3"></audio>
   </div>
-  <audio id="notification-sound" src="https://www.soundjay.com/buttons/beep-01a.mp3"></audio>
+
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
