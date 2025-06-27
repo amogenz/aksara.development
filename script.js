@@ -27,14 +27,16 @@ function startChat() {
   }
 
   peer = new Peer(roomId + '-' + username, {
-    host: 'peerjs.com',
+    host: 'peerjs-server.herokuapp.com', // Fallback ke server sebelumnya
     secure: true,
     port: 443,
-    debug: 3, // Tingkatkan debug untuk info lebih
+    debug: 3,
     config: {
       iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' }
+        { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'stun:stun2.l.google.com:19302' },
+        { urls: 'stun:stun3.l.google.com:19302' }
       ]
     }
   });
@@ -83,13 +85,13 @@ function startChat() {
 
   peer.on('error', (err) => {
     console.error('PeerJS error:', err);
-    updateConnectionStatus(`Error: ${err.type}. Coba refresh halaman atau ganti ke Wi-Fi.`, 'error');
-    alert(`Koneksi bermasalah: ${err.type}. Pastikan nama teman benar, gunakan Wi-Fi, atau coba VPN.`);
+    updateConnectionStatus(`Error: ${err.type}. Coba refresh halaman, gunakan Wi-Fi, atau coba VPN.`, 'error');
+    alert(`Koneksi bermasalah: ${err.type}. Pastikan nama teman benar, gunakan Wi-Fi hotspot, atau coba VPN (misalnya, ProtonVPN).`);
     if (err.type === 'peer-unavailable' && !isInitiator) {
       setTimeout(promptForPeerConnection, 2000);
     } else if (err.type === 'network') {
-      console.log('Retrying connection in 3 seconds...');
-      setTimeout(() => startChat(), 3000); // Retry otomatis
+      console.log('Retrying connection in 2 seconds...');
+      setTimeout(() => startChat(), 2000); // Retry lebih cepat
     }
   });
 
