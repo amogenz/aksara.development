@@ -27,9 +27,12 @@ h2 {
 
 .chat-logo {
   display: block;
-  margin: 0 auto 10px;
-  width: 80px;
+  margin: 0 auto 15px;
+  width: 100px;
+  max-width: 120px;
   height: auto;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0; /* Fallback untuk debugging */
 }
 
 #chat-box {
@@ -50,7 +53,7 @@ h2 {
   border-radius: 12px;
   line-height: 1.4;
   position: relative;
-  word-wrap Захватывающий word;
+  word-wrap: break-word;
 }
 
 .message.sent {
@@ -69,7 +72,7 @@ h2 {
 
 /* Input dan Tombol */
 input {
-  padding国际化: padding: 10px;
+  padding: 10px;
   border: 1px solid #d1d5db;
   border-radius: 8px;
   font-size: 16px;
@@ -169,7 +172,8 @@ button:active {
   }
 
   .chat-logo {
-    width: 60px;
+    width: 70px;
+    max-width: 90px;
   }
 
   input, button {
