@@ -27,17 +27,10 @@ function startChat() {
   }
 
   peer = new Peer(roomId + '-' + username, {
-    host: 'peerjs.com',
+    host: 'peerjs-server.herokuapp.com',
     secure: true,
     port: 443,
-    debug: 2,
-    config: {
-      iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' },
-        { urls: 'turn:global.turn.twilio.com:3478', username: 'guest', credential: 'somepassword' } // Ganti dengan TURN servermu
-      ]
-    }
+    debug: 2
   });
 
   peer.on('open', (id) => {
@@ -67,6 +60,9 @@ function startChat() {
         console.log('Pesan diterima:', data);
         displayMessage(data, 'received');
         saveMessage(data);
+        // Putar suara notifikasi
+        const audio = document.getElementById('notification-sound');
+        audio.play().catch((err) => console.error('Gagal memutar suara:', err));
       });
       conn.on('error', (err) => {
         console.error('Koneksi error:', err);
@@ -89,24 +85,28 @@ function startChat() {
     }
   });
 
+  // Event listener Enter
+  document.addEventListener('DOMContentLoaded', () => {
+    const messageInput = document.getElementById('message-input');
+    if (messageInput) {
+      messageInput.addEventListener('keypress', (event) => {
+        console.log('Key pressed:', event.key);
+        if (event.key === 'Enter' && !event.shiftKey) {
+          event.preventDefault();
+          sendMessage();
+          // Trigger animasi pesawat
+          const sendButton = document.querySelector('.send-button');
+          sendButton.classList.add('active');
+          setTimeout(() => sendButton.classList.remove('active'), 300);
+        }
+      });
+    } else {
+      console.error('message-input tidak ditemukan!');
+    }
+  });
+
   loadMessages();
 }
-
-// Event listener Enter
-document.addEventListener('DOMContentLoaded', () => {
-  const messageInput = document.getElementById('message-input');
-  if (messageInput) {
-    messageInput.addEventListener('keypress', (event) => {
-      console.log('Key pressed:', event.key); // Debugging
-      if (event.key === 'Enter' && !event.shiftKey) {
-        event.preventDefault();
-        sendMessage();
-      }
-    });
-  } else {
-    console.error('message-input tidak ditemukan!');
-  }
-});
 
 function promptForPeerConnection() {
   if (!conn || !conn.open) {
@@ -122,6 +122,9 @@ function promptForPeerConnection() {
         console.log('Pesan diterima:', data);
         displayMessage(data, 'received');
         saveMessage(data);
+        // Putar suara notifikasi
+        const audio = document.getElementById('notification-sound');
+        audio.play().catch((err) => console.error('Gagal memutar suara:', err));
       });
       conn.on('error', (err) => {
         console.error('Gagal terhubung ke peer:', otherPeerId, err);
