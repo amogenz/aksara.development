@@ -22,13 +22,13 @@ body {
 }
 
 .login-logo {
-  width: 80px; /* Kecilkan logo */
+  width: 80px;
   height: auto;
   margin-bottom: 0.8rem;
 }
 
 .login-container h1 {
-  font-size: 1.8rem; /* Kecilkan sedikit biar proporsional */
+  font-size: 1.8rem;
   color: #00ff88;
   margin-bottom: 1.2rem;
 }
@@ -81,6 +81,41 @@ body {
   width: 90%;
   max-width: 600px;
   margin: 0 auto;
+  padding: 1rem;
+}
+
+.chat-header {
+  width: 100%;
+  background-color: #2a2a2a;
+  padding: 0.5rem;
+  border-radius: 8px 8px 0 0;
+  margin-bottom: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#invite-link {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #00ff88;
+  word-break: break-all;
+  flex-grow: 1;
+}
+
+.chat-header button {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  background-color: #00ff88;
+  color: #1a1a1a;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.chat-header button:hover {
+  background-color: #00cc66;
 }
 
 #chat-box {
@@ -92,29 +127,34 @@ body {
   padding: 1rem;
   background-color: #2a2a2a;
   margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
 }
 
 .message {
   padding: 0.5rem;
-  margin: 0.5rem 0;
+  margin: 0.2rem 0;
   border-radius: 8px;
+  max-width: 70%;
+  word-wrap: break-word;
 }
 
 .message.sent {
   background-color: #00ff88;
   color: #1a1a1a;
-  margin-left: 20%;
+  margin-left: auto;
   text-align: right;
 }
 
 .message.received {
   background-color: #333;
-  margin-right: 20%;
+  margin-right: auto;
 }
 
 .status {
   font-size: 0.9rem;
   margin: 0.5rem 0;
+  text-align: center;
 }
 
 .status-connecting::after {
@@ -141,24 +181,11 @@ body {
   content: '🚫';
 }
 
-#invite-link {
-  margin: 1rem 0;
-  word-break: break-all;
-}
-
-#invite-link a {
-  color: #00ff88;
-  text-decoration: none;
-}
-
-#invite-link a:hover {
-  text-decoration: underline;
-}
-
 .input-container {
   display: flex;
   width: 100%;
   gap: 0.5rem;
+  margin-top: 0.5rem;
 }
 
 #message-input {
@@ -178,20 +205,24 @@ body {
 
 .send-button {
   padding: 0.8rem;
-  font-size: 1.2rem;
+  font-size: 1.5rem; /* Besarin ikon pesawat */
   background-color: #00ff88;
   color: #1a1a1a;
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  transition: transform 0.3s;
+  transition: transform 0.3s, background-color 0.3s;
+}
+
+.send-button:hover {
+  background-color: #00cc66;
 }
 
 .send-button.active {
   animation: sendFly 0.3s ease-in-out;
 }
 
-#chat-section button:not(.send-button) {
+#chat-section button:not(.send-button):not(.chat-header button) {
   padding: 0.8rem;
   font-size: 1rem;
   background-color: #00ff88;
@@ -203,13 +234,13 @@ body {
   transition: background-color 0.3s;
 }
 
-#chat-section button:not(.send-button):hover {
+#chat-section button:not(.send-button):not(.chat-header button):hover {
   background-color: #00cc66;
 }
 
 @keyframes sendFly {
   0% { transform: translateX(0) rotate(0); }
-  50% { transform: translateX(20px) rotate(20deg); }
+  50% { transform: translateX(25px) rotate(30deg); }
   100% { transform: translateX(0) rotate(0); }
 }
 
@@ -231,7 +262,7 @@ body {
     max-width: 300px;
   }
   .login-logo {
-    width: 60px; /* Lebih kecil di HP */
+    width: 60px;
   }
   .login-container h1 {
     font-size: 1.5rem;
@@ -239,5 +270,27 @@ body {
   #username, .login-container button {
     padding: 0.6rem;
     font-size: 0.9rem;
+  }
+  #chat-section {
+    padding: 0.5rem;
+  }
+  .chat-header {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  #invite-link {
+    font-size: 0.8rem;
+  }
+  .chat-header button {
+    width: 100%;
+  }
+  #chat-box {
+    height: 300px;
+  }
+  .message {
+    max-width: 80%;
+  }
+  .send-button {
+    font-size: 1.2rem;
   }
 }
