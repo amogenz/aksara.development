@@ -25,13 +25,21 @@ function startChat() {
     }
   }
 
+  // Inisialisasi PeerJS dengan konfigurasi yang lebih robust
   peer = new Peer(roomId + '-' + username, {
-    debug: 2 // Untuk debugging PeerJS
+    host: 'peerjs-server-1.onrender.com', // Gunakan server PeerJS publik
+    secure: true,
+    port: 443,
+    debug: 2 // Untuk debugging
   });
 
   peer.on('open', (id) => {
     console.log('Peer ID:', id);
-    const inviteLink = `${window.location.origin}${window.location.pathname}?room=${roomId}`;
+    // Gunakan URL CodePen yang benar atau URL hosting
+    const baseUrl = window.location.href.includes('codepen') 
+      ? window.location.href.split('?')[0] 
+      : `${window.location.origin}${window.location.pathname}`;
+    const inviteLink = `${baseUrl}?room=${roomId}`;
     document.getElementById('invite-link').textContent = `Kirim link ini ke teman: ${inviteLink}`;
   });
 
@@ -41,14 +49,26 @@ function startChat() {
       displayMessage(data, 'received');
       saveMessage(data);
     });
-  });
-
-  // Jika ada roomId, coba hubungkan ke peer lain
-  if (roomId && document.getElementById('username').value) {
-    conn = peer.connect(roomId + '-' + username);
     conn.on('open', () => {
       console.log('Terhubung ke peer lain');
     });
+  });
+
+  // Jika ada roomId, coba hubungkan ke peer lain
+  if (roomId) {
+    setTimeout(() => {
+      const otherPeerId = prompt('Masukkan nama pengguna teman untuk terhubung:');
+      if (otherPeerId) {
+        conn = peer.connect(roomId + '-' + otherPeerId);
+        conn.on('open', () => {
+          console.log('Terhubung ke peer:', otherPeerId);
+        });
+        conn.on('error', (err) => {
+          console.error('Koneksi gagal:', err);
+          alert('Gagal terhubung ke teman. Pastikan nama pengguna benar dan jaringan mendukung WebRTC.');
+        });
+      }
+    }, 1000);
   }
 
   loadMessages();
@@ -59,7 +79,10 @@ function generateInvite() {
     alert('Room belum dibuat!');
     return;
   }
-  const inviteLink = `${window.location.origin}${window.location.pathname}?room=${roomId}`;
+  const baseUrl = window.location.href.includes('codepen') 
+    ? window.location.href.split('?')[0] 
+    : `${window.location.origin}${window.location.pathname}`;
+  const inviteLink = `${baseUrl}?room=${roomId}`;
   navigator.clipboard.writeText(inviteLink).then(() => {
     alert('Link undangan telah disalin!');
   }).catch(() => {
@@ -78,7 +101,7 @@ function sendMessage() {
     displayMessage(data, 'sent');
     saveMessage(data);
   } else {
-    alert('Belum terhubung dengan teman!');
+    alert('Belum terhubung dengan teman! Pastikan teman Anda sudah bergabung.');
   }
   messageInput.value = '';
 }
