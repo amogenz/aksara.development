@@ -12,10 +12,10 @@ function startChat() {
 
   document.getElementById('name-section').style.display = 'none';
   document.getElementById('chat-section').style.display = 'block';
+  updateConnectionStatus('Menghubungkan...');
 
   if (!roomId) {
     roomId = generateRoomId();
-    // Hanya gunakan pushState jika lingkungan mendukung
     if (window.location.origin !== 'null' && window.location.protocol !== 'file:') {
       try {
         window.history.pushState({}, '', `?room=${roomId}`);
@@ -25,53 +25,67 @@ function startChat() {
     }
   }
 
-  // Inisialisasi PeerJS dengan konfigurasi yang lebih robust
   peer = new Peer(roomId + '-' + username, {
-    host: 'peerjs-server-1.onrender.com', // Gunakan server PeerJS publik
+    host: '0.peerjs.com', // Ganti ke server PeerJS default yang lebih andal
     secure: true,
     port: 443,
-    debug: 2 // Untuk debugging
+    debug: 2
   });
 
   peer.on('open', (id) => {
     console.log('Peer ID:', id);
-    // Gunakan URL CodePen yang benar atau URL hosting
-    const baseUrl = window.location.href.includes('codepen') 
+    const baseUrl = window.location.href.includes('github.io') 
       ? window.location.href.split('?')[0] 
       : `${window.location.origin}${window.location.pathname}`;
     const inviteLink = `${baseUrl}?room=${roomId}`;
     document.getElementById('invite-link').textContent = `Kirim link ini ke teman: ${inviteLink}`;
+    updateConnectionStatus('Menunggu teman bergabung...');
   });
 
   peer.on('connection', (connection) => {
     conn = connection;
+    conn.on('open', () => {
+      console.log('Terhubung ke peer:', conn.peer);
+      updateConnectionStatus('Terhubung dengan teman!');
+    });
     conn.on('data', (data) => {
       displayMessage(data, 'received');
       saveMessage(data);
     });
-    conn.on('open', () => {
-      console.log('Terhubung ke peer lain');
+    conn.on('error', (err) => {
+      console.error('Koneksi error:', err);
+      updateConnectionStatus('Gagal terhubung. Coba lagi.');
     });
   });
 
-  // Jika ada roomId, coba hubungkan ke peer lain
+  peer.on('error', (err) => {
+    console.error('PeerJS error:', err);
+    updateConnectionStatus(`Error: ${err.type}. Coba refresh halaman.`);
+  });
+
+  // Jika ada roomId, coba hubungkan ke semua peer di room
   if (roomId) {
     setTimeout(() => {
-      const otherPeerId = prompt('Masukkan nama pengguna teman untuk terhubung:');
-      if (otherPeerId) {
-        conn = peer.connect(roomId + '-' + otherPeerId);
-        conn.on('open', () => {
-          console.log('Terhubung ke peer:', otherPeerId);
-        });
-        conn.on('error', (err) => {
-          console.error('Koneksi gagal:', err);
-          alert('Gagal terhubung ke teman. Pastikan nama pengguna benar dan jaringan mendukung WebRTC.');
-        });
-      }
+      connectToRoomPeers();
     }, 1000);
   }
 
   loadMessages();
+}
+
+function connectToRoomPeers() {
+  // Coba hubungkan ke peer lain di room yang sama
+  // Asumsi peer lain menggunakan roomId yang sama
+  const otherPeerId = roomId + '-' + (username === 'user1' ? 'user2' : 'user1');
+  conn = peer.connect(otherPeerId);
+  conn.on('open', () => {
+    console.log('Terhubung ke peer:', otherPeerId);
+    updateConnectionStatus('Terhubung dengan teman!');
+  });
+  conn.on('error', (err) => {
+    console.error('Gagal terhubung ke peer:', otherPeerId, err);
+    updateConnectionStatus('Menunggu teman bergabung...');
+  });
 }
 
 function generateInvite() {
@@ -79,7 +93,7 @@ function generateInvite() {
     alert('Room belum dibuat!');
     return;
   }
-  const baseUrl = window.location.href.includes('codepen') 
+  const baseUrl = window.location.href.includes('github.io') 
     ? window.location.href.split('?')[0] 
     : `${window.location.origin}${window.location.pathname}`;
   const inviteLink = `${baseUrl}?room=${roomId}`;
@@ -101,7 +115,7 @@ function sendMessage() {
     displayMessage(data, 'sent');
     saveMessage(data);
   } else {
-    alert('Belum terhubung dengan teman! Pastikan teman Anda sudah bergabung.');
+    alert('Belum terhubung dengan teman! Tunggu hingga status "Terhubung".');
   }
   messageInput.value = '';
 }
@@ -130,7 +144,11 @@ function generateRoomId() {
   return 'room-' + Math.random().toString(36).substr(2, 9);
 }
 
-// Hubungkan ke peer lain jika ada roomId
+function updateConnectionStatus(status) {
+  const statusElement = document.getElementById('invite-link');
+  statusElement.textContent = status;
+}
+
 if (roomId) {
   setTimeout(() => {
     if (!username) {
