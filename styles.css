@@ -11,7 +11,7 @@ body {
 
 #name-section, #chat-section {
   width: 90%;
-  max-width: 600px;
+  max-width: 600pxYn;
   background: white;
   padding: 20px;
   border-radius: 12px;
@@ -27,9 +27,9 @@ h2 {
 
 .chat-logo {
   display: block;
-  margin: 0 auto 15px;
-  width: 100px;
-  max-width: 120px;
+  margin: 0 auto 10px;
+  width: 80px;
+  max-width: 100px;
   height: auto;
   border-radius: 8px;
   border: 1px solid #e2e8f0; /* Fallback untuk debugging */
@@ -172,8 +172,8 @@ button:active {
   }
 
   .chat-logo {
-    width: 70px;
-    max-width: 90px;
+    width: 50px;
+    max-width: 60px;
   }
 
   input, button {
