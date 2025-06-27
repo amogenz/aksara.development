@@ -37,7 +37,7 @@ function startChat() {
         { urls: 'stun:stun1.l.google.com:19302' },
         { urls: 'stun:stun2.l.google.com:19302' },
         { urls: 'stun:stun3.l.google.com:19302' },
-        { urls: 'turn:numb viagenie.ca', credential: 'muazkh', username: 'webrtc@live.com' }
+        { urls: 'turn:numb.viagenie.ca', credential: 'muazkh', username: 'webrtc@live.com' }
       ]
     }
   });
@@ -70,6 +70,7 @@ function startChat() {
         displayMessage(data, 'received');
         saveMessage(data);
         const audio = document.getElementById('notification-sound');
+        console.log('Mencoba memutar suara notifikasi...');
         audio.play().catch((err) => console.error('Gagal memutar suara:', err));
       });
       conn.on('error', (err) => {
@@ -96,24 +97,53 @@ function startChat() {
     }
   });
 
+  // Inisialisasi audio untuk bypass auto-play restriction
+  const audio = document.getElementById('notification-sound');
+  if (audio) {
+    audio.load();
+    console.log('Audio diinisialisasi:', audio.src);
+  } else {
+    console.error('Elemen notification-sound tidak ditemukan!');
+  }
+
   // Event listener untuk Enter
   const messageInput = document.getElementById('message-input');
   if (messageInput) {
     messageInput.addEventListener('keydown', (event) => {
       console.log('Key down:', event.key, 'KeyCode:', event.keyCode, 'Which:', event.which);
       if (event.key === 'Enter' || event.keyCode === 13 || event.which === 13) {
-        if (!event.shiftKey) {
-          event.preventDefault();
-          console.log('Enter pressed, sending message...');
-          sendMessage();
-          const sendButton = document.querySelector('.send-button');
+        event.preventDefault(); // Selalu cegah default (baris baru)
+        console.log('Enter pressed, sending message...');
+        sendMessage();
+        const sendButton = document.querySelector('.send-button');
+        if (sendButton) {
           sendButton.classList.add('active');
           setTimeout(() => sendButton.classList.remove('active'), 300);
+        } else {
+          console.error('send-button tidak ditemukan!');
         }
       }
     });
   } else {
     console.error('message-input tidak ditemukan saat inisialisasi!');
+    setTimeout(() => {
+      const retryInput = document.getElementById('message-input');
+      if (retryInput) {
+        retryInput.addEventListener('keydown', (event) => {
+          console.log('Retry Key down:', event.key, 'KeyCode:', event.keyCode, 'Which:', event.which);
+          if (event.key === 'Enter' || event.keyCode === 13 || event.which === 13) {
+            event.preventDefault();
+            console.log('Retry Enter pressed, sending message...');
+            sendMessage();
+            const sendButton = document.querySelector('.send-button');
+            if (sendButton) {
+              sendButton.classList.add('active');
+              setTimeout(() => sendButton.classList.remove('active'), 300);
+            }
+          }
+        });
+      }
+    }, 1000); // Retry setelah 1 detik
   }
 
   loadMessages();
@@ -135,6 +165,7 @@ function promptForPeerConnection() {
         displayMessage(data, 'received');
         saveMessage(data);
         const audio = document.getElementById('notification-sound');
+        console.log('Mencoba memutar suara notifikasi...');
         audio.play().catch((err) => console.error('Gagal memutar suara:', err));
       });
       conn.on('error', (err) => {
@@ -174,15 +205,20 @@ function generateInvite() {
 function sendMessage() {
   const messageInput = document.getElementById('message-input');
   const message = messageInput.value.trim();
-  if (!message) return;
+  if (!message) {
+    console.log('Pesan kosong, tidak dikirim.');
+    return;
+  }
 
   const data = `${username}: ${message}`;
   if (conn && conn.open) {
     conn.send(data);
     displayMessage(data, 'sent');
     saveMessage(data);
+    console.log('Pesan terkirim:', data);
   } else {
     alert('Belum terhubung dengan teman! Tunggu hingga status "Terhubung".');
+    console.log('Gagal kirim pesan: Tidak terhubung.');
   }
   messageInput.value = '';
 }
