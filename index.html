@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Aksara</title>
+  <title>Chat P2P Kece</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -16,8 +16,10 @@
     <img src="https://i.imgur.com/4hLGS4J.png" alt="Aksara Logo" class="chat-logo">
     <h2>Aksara</h2>
     <div id="connection-status" class="status"></div>
-    <button onclick="generateInvite()">Undang Teman</button>
-    <p id="invite-link"></p>
+    <div class="invite-container">
+      <button onclick="generateInvite()">Undang Teman</button>
+      <div id="invite-link" class="invite-link"></div>
+    </div>
     <div id="chat-box"></div>
     <div class="input-container">
       <input type="text" id="message-input" placeholder="Ketik pesan...">
