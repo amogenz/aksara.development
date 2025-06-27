@@ -46,7 +46,6 @@ h2 {
   margin-bottom: 15px;
 }
 
-/* Chat Bubble */
 .message {
   margin: 10px 0;
   padding: 10px 15px;
@@ -71,7 +70,6 @@ h2 {
   border-bottom-left-radius: 4px;
 }
 
-/* Input dan Tombol */
 input {
   padding: 10px;
   border: 1px solid #4b5563;
@@ -121,6 +119,15 @@ button:active {
   background-size: 20px;
 }
 
+.send-button:active {
+  animation: sendFly 0.3s ease-out;
+}
+@keyframes sendFly {
+  0% { transform: translateX(0); }
+  50% { transform: translateX(10px); }
+  100% { transform: translateX(0); }
+}
+
 .input-container {
   display: flex;
   gap: 10px;
@@ -131,7 +138,6 @@ button:active {
   flex: 1;
 }
 
-/* Invite Section */
 .invite-container {
   display: flex;
   flex-wrap: wrap;
@@ -160,7 +166,6 @@ button:active {
   text-decoration: underline;
 }
 
-/* Status Koneksi */
 .status {
   text-align: center;
   padding: 8px;
@@ -201,21 +206,24 @@ button:active {
   background: #ef4444;
 }
 
-/* Animasi Wi-Fi */
 @keyframes wifiWave {
   0% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.5; transform: scale(1.2); }
   100% { opacity: 1; transform: scale(1); }
 }
 
-/* Animasi Loading */
 @keyframes pulse {
   0% { opacity: 1; }
   50% { opacity: 0.4; }
   100% { opacity: 1; }
 }
 
-/* Responsivitas */
+@keyframes sendFly {
+  0% { transform: translateX(0); }
+  50% { transform: translateX(10px); }
+  100% { transform: translateX(0); }
+}
+
 @media (max-width: 500px) {
   #name-section, #chat-section {
     width: 95%;
@@ -257,7 +265,6 @@ button:active {
   }
 }
 
-/* Scrollbar Styling */
 #chat-box::-webkit-scrollbar {
   width: 8px;
 }
