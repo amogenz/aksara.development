@@ -29,11 +29,11 @@ h2 {
 .chat-logo {
   display: block;
   margin: 0 auto 10px;
-  width: 300px;
-  max-width:300px;
+  width: 80px;
+  max-width: 100px;
   height: auto;
-  border-radius: 0px;
-  border: 0px solid #4b5563;
+  border-radius: 8px;
+  border: 1px solid #4b5563;
 }
 
 #chat-box {
@@ -183,17 +183,22 @@ button:active {
   margin-right: 8px;
 }
 
-.status:contains('Menghubungkan')::before,
-.status:contains('Menunggu')::before {
+.status-connecting::before,
+.status-waiting::before {
   background: #f59e0b;
   animation: pulse 1.5s infinite;
 }
 
-.status:contains('Terhubung')::before {
-  content: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="%2322c55e" stroke-width="2"><path d="M1 12a11 11 0 0 1 11-11 11 11 0 0 1 11 11 11 11 0 0 1-11 11 11 11 0 0 1-11-11zm6 0a5 5 0 0 0 5-5 5 5 0 0 0-5 5zm5 4a5 5 0 0 0 5-5 5 5 0 0 0-5 5z"/></svg>');
-  width: 12px;
-  height: 12px;
+.status-connected::before {
+  content: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="%2322c55e" stroke-width="2"><path d="M1 12a11 11 0 0 1 11-11 11 11 0 0 1 11 11 11 11 0 0 1-11 11 11 11 0 0 1-11-11zm6 0a5 5 0 0 0 5-5 5 5 0 0 0-5 5zm5 4a5 5 0 0 0 5-5 5 5 0 0 0-5 5z"/></svg>');
+  width: 14px;
+  height: 14px;
   animation: wifiWave 1.5s infinite;
+}
+
+.status-error::before,
+.status-disconnected::before {
+  background: #ef4444;
 }
 
 /* Animasi Wi-Fi */
@@ -201,12 +206,6 @@ button:active {
   0% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.5; transform: scale(1.2); }
   100% { opacity: 1; transform: scale(1); }
-}
-
-.status:contains('Gagal')::before,
-.status:contains('Error')::before,
-.status:contains('terputus')::before {
-  background: #ef4444;
 }
 
 /* Animasi Loading */
@@ -250,6 +249,11 @@ button:active {
   .invite-link {
     font-size: 12px;
     padding: 6px 10px;
+  }
+
+  .status-connected::before {
+    width: 12px;
+    height: 12px;
   }
 }
 
