@@ -112,38 +112,31 @@ function startChat() {
     messageInput.addEventListener('keydown', (event) => {
       console.log('Key down:', event.key, 'KeyCode:', event.keyCode, 'Which:', event.which);
       if (event.key === 'Enter' || event.keyCode === 13 || event.which === 13) {
-        event.preventDefault(); // Selalu cegah default (baris baru)
+        event.preventDefault();
         console.log('Enter pressed, sending message...');
         sendMessage();
         const sendButton = document.querySelector('.send-button');
         if (sendButton) {
           sendButton.classList.add('active');
           setTimeout(() => sendButton.classList.remove('active'), 300);
-        } else {
-          console.error('send-button tidak ditemukan!');
         }
       }
     });
   } else {
     console.error('message-input tidak ditemukan saat inisialisasi!');
-    setTimeout(() => {
-      const retryInput = document.getElementById('message-input');
-      if (retryInput) {
-        retryInput.addEventListener('keydown', (event) => {
-          console.log('Retry Key down:', event.key, 'KeyCode:', event.keyCode, 'Which:', event.which);
-          if (event.key === 'Enter' || event.keyCode === 13 || event.which === 13) {
-            event.preventDefault();
-            console.log('Retry Enter pressed, sending message...');
-            sendMessage();
-            const sendButton = document.querySelector('.send-button');
-            if (sendButton) {
-              sendButton.classList.add('active');
-              setTimeout(() => sendButton.classList.remove('active'), 300);
-            }
-          }
-        });
-      }
-    }, 1000); // Retry setelah 1 detik
+  }
+
+  // Event listener untuk send-button
+  const sendButton = document.querySelector('.send-button');
+  if (sendButton) {
+    sendButton.addEventListener('click', () => {
+      console.log('Send button clicked, sending message...');
+      sendMessage();
+      sendButton.classList.add('active');
+      setTimeout(() => sendButton.classList.remove('active'), 300);
+    });
+  } else {
+    console.error('send-button tidak ditemukan!');
   }
 
   loadMessages();
@@ -256,7 +249,7 @@ function updateConnectionStatus(status, statusType) {
   if (document.getElementById('connection-status')) {
     document.getElementById('connection-status').remove();
   }
-  inviteLink.insertAdjacentElement('beforebegin', statusElement);
+  inviteLink.insertAdjacentElement('afterend', statusElement);
 }
 
 if (roomId) {
