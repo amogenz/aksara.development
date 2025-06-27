@@ -27,7 +27,7 @@ function startChat() {
   }
 
   peer = new Peer(roomId + '-' + username, {
-    host: '0.peerjs.com',
+    host: 'peerjs-server.herokuapp.com',
     secure: true,
     port: 443,
     debug: 2
@@ -84,16 +84,19 @@ function startChat() {
   loadMessages();
 }
 
-// Tambah event listener Enter di luar startChat untuk keandalan
+// Event listener Enter
 document.addEventListener('DOMContentLoaded', () => {
   const messageInput = document.getElementById('message-input');
   if (messageInput) {
     messageInput.addEventListener('keypress', (event) => {
+      console.log('Key pressed:', event.key); // Debugging
       if (event.key === 'Enter' && !event.shiftKey) {
         event.preventDefault();
         sendMessage();
       }
     });
+  } else {
+    console.error('message-input tidak ditemukan!');
   }
 });
 
