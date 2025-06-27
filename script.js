@@ -30,7 +30,14 @@ function startChat() {
     host: 'peerjs-server.herokuapp.com',
     secure: true,
     port: 443,
-    debug: 2
+    debug: 2,
+    config: {
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'turn:global.turn.twilio.com:3478', username: 'guest', credential: 'somepassword' } // Ganti dengan TURN servermu
+      ]
+    }
   });
 
   peer.on('open', (id) => {
@@ -60,7 +67,6 @@ function startChat() {
         console.log('Pesan diterima:', data);
         displayMessage(data, 'received');
         saveMessage(data);
-        // Putar suara notifikasi
         const audio = document.getElementById('notification-sound');
         audio.play().catch((err) => console.error('Gagal memutar suara:', err));
       });
@@ -79,13 +85,14 @@ function startChat() {
   peer.on('error', (err) => {
     console.error('PeerJS error:', err);
     updateConnectionStatus(`Error: ${err.type}. Coba refresh halaman atau ganti jaringan.`, 'error');
-    alert(`Koneksi bermasalah: ${err.type}. Pastikan nama teman benar dan jaringan oke.`);
+    alert(`Koneksi bermasalah: ${err.type}. Pastikan nama teman benar dan coba Wi-Fi.`);
     if (err.type === 'peer-unavailable' && !isInitiator) {
       setTimeout(promptForPeerConnection, 2000);
+    } else if (err.type === 'network') {
+      setTimeout(() => startChat(), 3000); // Retry otomatis
     }
   });
 
-  // Event listener Enter
   document.addEventListener('DOMContentLoaded', () => {
     const messageInput = document.getElementById('message-input');
     if (messageInput) {
@@ -94,7 +101,6 @@ function startChat() {
         if (event.key === 'Enter' && !event.shiftKey) {
           event.preventDefault();
           sendMessage();
-          // Trigger animasi pesawat
           const sendButton = document.querySelector('.send-button');
           sendButton.classList.add('active');
           setTimeout(() => sendButton.classList.remove('active'), 300);
@@ -122,7 +128,6 @@ function promptForPeerConnection() {
         console.log('Pesan diterima:', data);
         displayMessage(data, 'received');
         saveMessage(data);
-        // Putar suara notifikasi
         const audio = document.getElementById('notification-sound');
         audio.play().catch((err) => console.error('Gagal memutar suara:', err));
       });
