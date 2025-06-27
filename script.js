@@ -37,7 +37,7 @@ function startChat() {
         { urls: 'stun:stun1.l.google.com:19302' },
         { urls: 'stun:stun2.l.google.com:19302' },
         { urls: 'stun:stun3.l.google.com:19302' },
-        { urls: 'turn:numb.viagenie.ca', credential: 'muazkh', username: 'webrtc@live.com' }
+        { urls: 'turn:numb viagenie.ca', credential: 'muazkh', username: 'webrtc@live.com' }
       ]
     }
   });
@@ -96,23 +96,25 @@ function startChat() {
     }
   });
 
-  document.addEventListener('DOMContentLoaded', () => {
-    const messageInput = document.getElementById('message-input');
-    if (messageInput) {
-      messageInput.addEventListener('keypress', (event) => {
-        console.log('Key pressed:', event.key);
-        if (event.key === 'Enter' && !event.shiftKey) {
+  // Event listener untuk Enter
+  const messageInput = document.getElementById('message-input');
+  if (messageInput) {
+    messageInput.addEventListener('keydown', (event) => {
+      console.log('Key down:', event.key, 'KeyCode:', event.keyCode, 'Which:', event.which);
+      if (event.key === 'Enter' || event.keyCode === 13 || event.which === 13) {
+        if (!event.shiftKey) {
           event.preventDefault();
+          console.log('Enter pressed, sending message...');
           sendMessage();
           const sendButton = document.querySelector('.send-button');
           sendButton.classList.add('active');
           setTimeout(() => sendButton.classList.remove('active'), 300);
         }
-      });
-    } else {
-      console.error('message-input tidak ditemukan!');
-    }
-  });
+      }
+    });
+  } else {
+    console.error('message-input tidak ditemukan saat inisialisasi!');
+  }
 
   loadMessages();
 }
