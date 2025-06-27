@@ -17,14 +17,16 @@
     </div>
   </div>
   <div id="chat-section" style="display: none;">
+    <div class="chat-header">
+      <p id="invite-link"></p>
+      <button onclick="generateInvite()">Salin Link Undangan</button>
+    </div>
     <div id="chat-box"></div>
     <p id="connection-status" class="status"></p>
-    <p id="invite-link"></p>
     <div class="input-container">
       <input type="text" id="message-input" placeholder="Ketik pesan...">
-      <button class="send-button">✈️</button>
+      <button class="send-button"></button>
     </div>
-    <button onclick="generateInvite()">Salin Link Undangan</button>
   </div>
   <audio id="notification-sound" src="https://www.soundjay.com/buttons/beep-01a.mp3"></audio>
   <script src="script.js"></script>
