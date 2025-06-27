@@ -12,7 +12,7 @@ function startChat() {
 
   document.getElementById('name-section').style.display = 'none';
   document.getElementById('chat-section').style.display = 'block';
-  updateConnectionStatus('Menghubungkan...');
+  updateConnectionStatus('Menghubungkan ke server PeerJS...');
 
   if (!roomId) {
     roomId = generateRoomId();
@@ -26,7 +26,7 @@ function startChat() {
   }
 
   peer = new Peer(roomId + '-' + username, {
-    host: '0.peerjs.com', // Ganti ke server PeerJS default yang lebih andal
+    host: '0.peerjs.com',
     secure: true,
     port: 443,
     debug: 2
@@ -38,8 +38,15 @@ function startChat() {
       ? window.location.href.split('?')[0] 
       : `${window.location.origin}${window.location.pathname}`;
     const inviteLink = `${baseUrl}?room=${roomId}`;
-    document.getElementById('invite-link').textContent = `Kirim link ini ke teman: ${inviteLink}`;
+    document.getElementById('invite-link').innerHTML = `Kirim link ini ke teman: <a href="${inviteLink}" target="_blank">${inviteLink}</a>`;
     updateConnectionStatus('Menunggu teman bergabung...');
+    
+    // Jika ada roomId, minta pengguna kedua untuk menghubungkan ke pengguna pertama
+    if (roomId && !conn) {
+      setTimeout(() => {
+        promptForPeerConnection();
+      }, 1000);
+    }
   });
 
   peer.on('connection', (connection) => {
@@ -54,38 +61,43 @@ function startChat() {
     });
     conn.on('error', (err) => {
       console.error('Koneksi error:', err);
-      updateConnectionStatus('Gagal terhubung. Coba lagi.');
+      updateConnectionStatus('Gagal terhubung. Coba hubungkan lagi.');
     });
   });
 
   peer.on('error', (err) => {
     console.error('PeerJS error:', err);
-    updateConnectionStatus(`Error: ${err.type}. Coba refresh halaman.`);
+    updateConnectionStatus(`Error: ${err.type}. Coba refresh halaman atau ganti jaringan.`);
+    if (err.type === 'peer-unavailable') {
+      setTimeout(() => {
+        promptForPeerConnection();
+      }, 2000);
+    }
   });
-
-  // Jika ada roomId, coba hubungkan ke semua peer di room
-  if (roomId) {
-    setTimeout(() => {
-      connectToRoomPeers();
-    }, 1000);
-  }
 
   loadMessages();
 }
 
-function connectToRoomPeers() {
-  // Coba hubungkan ke peer lain di room yang sama
-  // Asumsi peer lain menggunakan roomId yang sama
-  const otherPeerId = roomId + '-' + (username === 'user1' ? 'user2' : 'user1');
-  conn = peer.connect(otherPeerId);
-  conn.on('open', () => {
-    console.log('Terhubung ke peer:', otherPeerId);
-    updateConnectionStatus('Terhubung dengan teman!');
-  });
-  conn.on('error', (err) => {
-    console.error('Gagal terhubung ke peer:', otherPeerId, err);
-    updateConnectionStatus('Menunggu teman bergabung...');
-  });
+function promptForPeerConnection() {
+  if (!conn || !conn.open) {
+    const otherPeerName = prompt('Masukkan nama pengguna teman Anda:');
+    if (otherPeerName) {
+      const otherPeerId = roomId + '-' + otherPeerName.trim();
+      conn = peer.connect(otherPeerId);
+      conn.on('open', () => {
+        console.log('Terhubung ke peer:', otherPeerId);
+        updateConnectionStatus('Terhubung dengan teman!');
+      });
+      conn.on('error', (err) => {
+        console.error('Gagal terhubung ke peer:', otherPeerId, err);
+        updateConnectionStatus('Gagal terhubung. Pastikan nama teman benar.');
+        setTimeout(promptForPeerConnection, 2000);
+      });
+    } else {
+      updateConnectionStatus('Menunggu teman bergabung...');
+      setTimeout(promptForPeerConnection, 2000);
+    }
+  }
 }
 
 function generateInvite() {
@@ -145,8 +157,14 @@ function generateRoomId() {
 }
 
 function updateConnectionStatus(status) {
-  const statusElement = document.getElementById('invite-link');
+  const statusElement = document.createElement('p');
+  statusElement.id = 'connection-status';
   statusElement.textContent = status;
+  const inviteLink = document.getElementById('invite-link');
+  if (document.getElementById('connection-status')) {
+    document.getElementById('connection-status').remove();
+  }
+  inviteLink.insertAdjacentElement('afterend', statusElement);
 }
 
 if (roomId) {
