@@ -27,15 +27,14 @@ function startChat() {
   }
 
   peer = new Peer(roomId + '-' + username, {
-    host: 'peerjs-server.herokuapp.com',
+    host: 'peerjs.com',
     secure: true,
     port: 443,
-    debug: 2,
+    debug: 3, // Tingkatkan debug untuk info lebih
     config: {
       iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' },
-        { urls: 'turn:global.turn.twilio.com:3478', username: 'guest', credential: 'somepassword' } // Ganti dengan TURN servermu
+        { urls: 'stun:stun1.l.google.com:19302' }
       ]
     }
   });
@@ -84,11 +83,12 @@ function startChat() {
 
   peer.on('error', (err) => {
     console.error('PeerJS error:', err);
-    updateConnectionStatus(`Error: ${err.type}. Coba refresh halaman atau ganti jaringan.`, 'error');
-    alert(`Koneksi bermasalah: ${err.type}. Pastikan nama teman benar dan coba Wi-Fi.`);
+    updateConnectionStatus(`Error: ${err.type}. Coba refresh halaman atau ganti ke Wi-Fi.`, 'error');
+    alert(`Koneksi bermasalah: ${err.type}. Pastikan nama teman benar, gunakan Wi-Fi, atau coba VPN.`);
     if (err.type === 'peer-unavailable' && !isInitiator) {
       setTimeout(promptForPeerConnection, 2000);
     } else if (err.type === 'network') {
+      console.log('Retrying connection in 3 seconds...');
       setTimeout(() => startChat(), 3000); // Retry otomatis
     }
   });
@@ -119,6 +119,7 @@ function promptForPeerConnection() {
     const otherPeerName = prompt('Masukkan nama pengguna teman Anda:');
     if (otherPeerName) {
       const otherPeerId = roomId + '-' + otherPeerName.trim();
+      console.log('Mencoba koneksi ke:', otherPeerId);
       conn = peer.connect(otherPeerId);
       conn.on('open', () => {
         console.log('Terhubung ke peer:', otherPeerId);
