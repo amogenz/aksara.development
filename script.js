@@ -177,6 +177,7 @@ function generateRoomId() {
 function updateConnectionStatus(status) {
   const statusElement = document.createElement('p');
   statusElement.id = 'connection-status';
+  statusElement.className = 'status';
   statusElement.textContent = status;
   const inviteLink = document.getElementById('invite-link');
   if (document.getElementById('connection-status')) {
