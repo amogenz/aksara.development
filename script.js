@@ -27,10 +27,17 @@ function startChat() {
   }
 
   peer = new Peer(roomId + '-' + username, {
-    host: 'peerjs-server.herokuapp.com',
+    host: 'peerjs.com',
     secure: true,
     port: 443,
-    debug: 2
+    debug: 2,
+    config: {
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'turn:global.turn.twilio.com:3478', username: 'guest', credential: 'somepassword' } // Ganti dengan TURN servermu
+      ]
+    }
   });
 
   peer.on('open', (id) => {
@@ -76,6 +83,7 @@ function startChat() {
   peer.on('error', (err) => {
     console.error('PeerJS error:', err);
     updateConnectionStatus(`Error: ${err.type}. Coba refresh halaman atau ganti jaringan.`, 'error');
+    alert(`Koneksi bermasalah: ${err.type}. Pastikan nama teman benar dan jaringan oke.`);
     if (err.type === 'peer-unavailable' && !isInitiator) {
       setTimeout(promptForPeerConnection, 2000);
     }
