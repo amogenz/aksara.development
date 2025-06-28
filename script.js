@@ -27,7 +27,7 @@ function startChat() {
   }
 
   peer = new Peer(roomId + '-' + username, {
-    host: 'peerjs.xirsys.com', // Ganti ke server alternatif
+    host: '0.peerjs.com', // Ganti ke server alternatif
     secure: true,
     port: 443,
     debug: 3,
