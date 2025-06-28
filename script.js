@@ -1,8 +1,10 @@
-let peer;
-let conn;
+let socket;
+let pc;
 let username;
-let roomId = new URLSearchParams(window.location.search).get('room');
-let isInitiator = !roomId;
+let roomId = new URLSearchParams(window.location.search).get('room') || generateRoomId();
+let isInitiator = !window.location.search;
+
+const signalingServer = 'https://nama-app.herokuapp.com'; // Ganti dengan URL Heroku lo
 
 function startChat() {
   username = document.getElementById('username').value.trim();
@@ -13,174 +15,136 @@ function startChat() {
 
   document.getElementById('name-section').style.display = 'none';
   document.getElementById('chat-section').style.display = 'block';
-  updateConnectionStatus('Menghubungkan ke server PeerJS...', 'connecting');
+  updateConnectionStatus('Menghubungkan ke server signaling...', 'connecting');
 
-  if (!roomId) {
-    roomId = generateRoomId();
-    if (window.location.origin !== 'null' && window.location.protocol !== 'file:') {
-      try {
-        window.history.pushState({}, '', `?room=${roomId}`);
-      } catch (e) {
-        console.warn('pushState gagal, lanjutkan tanpa mengubah URL:', e);
-      }
-    }
-  }
-
-  peer = new Peer(roomId + '-' + username, {
-    host: '0.peerjs.com', // Ganti ke server alternatif
-    secure: true,
-    port: 443,
-    debug: 3,
-    config: {
-      iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' },
-        { urls: 'stun:stun2.l.google.com:19302' },
-        { urls: 'stun:stun3.l.google.com:19302' },
-        { urls: 'turn:numb.viagenie.ca', credential: 'muazkh', username: 'webrtc@live.com' },
-        { urls: 'turn:relay.backups.cz', username: 'webrtc', credential: 'webrtc' } // Tambah TURN alternatif
-      ],
-      iceTransportPolicy: 'all' // Paksa semua kandidat ICE
-    }
-  });
-
-  peer.on('open', (id) => {
-    console.log('Peer ID:', id);
-    const baseUrl = window.location.href.includes('github.io') 
-      ? window.location.href.split('?')[0] 
-      : `${window.location.origin}${window.location.pathname}`;
-    const inviteLink = `${baseUrl}?room=${roomId}`;
+  socket = io(signalingServer, { transports: ['websocket'], reconnection: true, reconnectionAttempts: 5 });
+  socket.on('connect', () => {
+    console.log('Socket connected:', socket.id);
+    socket.emit('join', { room: roomId, name: username });
+    const inviteLink = `${window.location.origin}${window.location.pathname}?room=${roomId}`;
     document.getElementById('invite-link').innerHTML = `Kirim link ini ke teman: <a href="${inviteLink}" target="_blank">${inviteLink}</a>`;
-    updateConnectionStatus('Menunggu teman bergabung...', 'waiting');
+  });
 
-    if (!isInitiator) {
-      setTimeout(() => {
-        promptForPeerConnection();
-      }, 1000);
+  socket.on('connect_error', (error) => {
+    console.error('Koneksi signaling gagal:', error);
+    updateConnectionStatus('Gagal terhubung ke server signaling. Coba lagi.', 'error');
+  });
+
+  socket.on('userJoined', (data) => {
+    console.log('Users in room:', data.users);
+    if (data.users.length === 1 && !isInitiator) {
+      createPeerConnection(true);
+      sendOffer();
+    } else if (data.initiator !== socket.id && !pc) {
+      createPeerConnection(false);
     }
   });
 
-  peer.on('connection', (connection) => {
-    if (!conn || !conn.open) {
-      conn = connection;
-      console.log('Koneksi masuk dari:', conn.peer);
-      conn.on('open', () => {
-        console.log('Koneksi terbuka dengan:', conn.peer);
-        updateConnectionStatus('Terhubung dengan teman!', 'connected');
-      });
-      conn.on('data', (data) => {
-        console.log('Pesan diterima:', data);
-        displayMessage(data, 'received');
-        saveMessage(data);
-        const audio = document.getElementById('notification-sound');
-        console.log('Mencoba memutar suara notifikasi...');
-        audio.play().catch((err) => console.error('Gagal memutar suara:', err));
-      });
-      conn.on('error', (err) => {
-        console.error('Koneksi error:', err);
-        updateConnectionStatus('Gagal terhubung. Coba hubungkan lagi.', 'error');
-      });
-      conn.on('close', () => {
-        console.log('Koneksi ditutup:', conn.peer);
-        updateConnectionStatus('Teman terputus. Coba hubungkan lagi.', 'disconnected');
-        conn = null;
-      });
-    } else {
-      console.warn('Koneksi lain ditolak, hanya satu koneksi diizinkan.');
+  socket.on('signal', (data) => {
+    console.log('Signal received:', data);
+    if (data.offer) {
+      pc.setRemoteDescription(new RTCSessionDescription(data.offer))
+        .then(() => pc.createAnswer())
+        .then(answer => {
+          pc.setLocalDescription(answer);
+          socket.emit('signal', { to: data.from, answer });
+        })
+        .catch(err => console.error('Error handling offer:', err));
+    } else if (data.answer) {
+      pc.setRemoteDescription(new RTCSessionDescription(data.answer)).catch(err => console.error('Error set answer:', err));
+    } else if (data.candidate) {
+      pc.addIceCandidate(new RTCIceCandidate(data.candidate)).catch(err => console.error('Error add candidate:', err));
     }
   });
 
-  peer.on('error', (err) => {
-    console.error('PeerJS error:', err);
-    updateConnectionStatus(`Error: ${err.type}. Coba refresh, gunakan Wi-Fi hotspot, atau VPN (ProtonVPN).`, 'error');
-    alert(`Koneksi bermasalah: ${err.type}. Pastikan nama teman benar, gunakan Wi-Fi hotspot, atau coba VPN (ProtonVPN, server Singapore).`);
-    if (err.type === 'peer-unavailable' && !isInitiator) {
-      setTimeout(promptForPeerConnection, 2000);
-    } else if (err.type === 'network') {
-      console.log('Retrying connection in 2 seconds...');
-      setTimeout(() => startChat(), 2000);
-    } else if (err.type === 'unavailable-id') {
-      console.log('ID sudah dipakai, generate ulang roomId...');
-      roomId = generateRoomId();
-      startChat();
-    }
+  socket.on('userLeft', (data) => {
+    if (pc) pc.close();
+    updateConnectionStatus('Teman terputus. Coba hubungkan lagi.', 'disconnected');
+    pc = null;
   });
 
-  // Inisialisasi audio untuk bypass auto-play restriction
-  const audio = document.getElementById('notification-sound');
-  if (audio) {
-    audio.load();
-    console.log('Audio diinisialisasi:', audio.src);
-  } else {
-    console.error('Elemen notification-sound tidak ditemukan!');
-  }
+  socket.on('disconnect', () => {
+    updateConnectionStatus('Koneksi signaling terputus. Mencoba reconnect...', 'disconnected');
+  });
 
-  // Event listener untuk Enter
-  const messageInput = document.getElementById('message-input');
-  if (messageInput) {
-    messageInput.addEventListener('keydown', (event) => {
-      console.log('Key down:', event.key, 'KeyCode:', event.keyCode, 'Which:', event.which);
-      if (event.key === 'Enter' || event.keyCode === 13 || event.which === 13) {
-        event.preventDefault();
-        console.log('Enter pressed, sending message...');
-        sendMessage();
-        const sendButton = document.querySelector('.send-button');
-        if (sendButton) {
-          sendButton.classList.add('active');
-          setTimeout(() => sendButton.classList.remove('active'), 300);
-        }
-      }
-    });
+  if (isInitiator) {
+    createPeerConnection(false);
   } else {
-    console.error('message-input tidak ditemukan saat inisialisasi!');
-  }
-
-  // Event listener untuk send-button
-  const sendButton = document.querySelector('.send-button');
-  if (sendButton) {
-    sendButton.addEventListener('click', () => {
-      console.log('Send button clicked, sending message...');
-      sendMessage();
-      sendButton.classList.add('active');
-      setTimeout(() => sendButton.classList.remove('active'), 300);
-    });
-  } else {
-    console.error('send-button tidak ditemukan!');
+    setTimeout(() => promptForPeerConnection(), 1000);
   }
 
   loadMessages();
 }
 
+function createPeerConnection(isOfferer) {
+  pc = new RTCPeerConnection({
+    iceServers: [
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:stun1.l.google.com:19302' },
+      { urls: 'turn:numb.viagenie.ca', credential: 'muazkh', username: 'webrtc@live.com' },
+      { urls: 'turn:relay.backups.cz', username: 'webrtc', credential: 'webrtc' } // Tambah TURN alternatif
+    ],
+    iceTransportPolicy: 'all'
+  });
+
+  pc.onicecandidate = (event) => {
+    if (event.candidate) {
+      socket.emit('signal', { to: getOtherPeerId(), candidate: event.candidate });
+    }
+  };
+
+  pc.oniceconnectionstatechange = () => {
+    console.log('ICE state:', pc.iceConnectionState);
+    if (pc.iceConnectionState === 'failed') {
+      pc.restartIce();
+      updateConnectionStatus('Koneksi ICE gagal, mencoba ulang...', 'error');
+    }
+  };
+
+  pc.ondatachannel = (event) => {
+    const dc = event.channel;
+    setupDataChannel(dc);
+  };
+
+  if (isOfferer) {
+    const dc = pc.createDataChannel('chat');
+    setupDataChannel(dc);
+  }
+}
+
+function setupDataChannel(dc) {
+  dc.onopen = () => {
+    console.log('Data channel terbuka');
+    updateConnectionStatus('Terhubung dengan teman!', 'connected');
+  };
+  dc.onmessage = (event) => {
+    console.log('Pesan diterima:', event.data);
+    displayMessage(event.data, 'received');
+    saveMessage(event.data);
+    document.getElementById('notification-sound').play().catch(err => console.error('Gagal suara:', err));
+  };
+  dc.onclose = () => updateConnectionStatus('Teman terputus.', 'disconnected');
+}
+
+function sendOffer() {
+  pc.createOffer({ offerToReceiveAudio: false, offerToReceiveVideo: false })
+    .then(offer => {
+      pc.setLocalDescription(offer);
+      socket.emit('signal', { to: getOtherPeerId(), offer });
+    })
+    .catch(err => console.error('Error create offer:', err));
+}
+
+function getOtherPeerId() {
+  const users = Object.keys(socket.rooms).filter(id => id !== socket.id && id !== roomId);
+  return users[0] || null;
+}
+
 function promptForPeerConnection() {
-  if (!conn || !conn.open) {
+  if (!pc) {
     const otherPeerName = prompt('Masukkan nama pengguna teman Anda:');
     if (otherPeerName) {
-      const otherPeerId = roomId + '-' + otherPeerName.trim();
-      console.log('Mencoba koneksi ke:', otherPeerId);
-      conn = peer.connect(otherPeerId);
-      conn.on('open', () => {
-        console.log('Terhubung ke peer:', otherPeerId);
-        updateConnectionStatus('Terhubung dengan teman!', 'connected');
-      });
-      conn.on('data', (data) => {
-        console.log('Pesan diterima:', data);
-        displayMessage(data, 'received');
-        saveMessage(data);
-        const audio = document.getElementById('notification-sound');
-        console.log('Mencoba memutar suara notifikasi...');
-        audio.play().catch((err) => console.error('Gagal memutar suara:', err));
-      });
-      conn.on('error', (err) => {
-        console.error('Gagal terhubung ke peer:', otherPeerId, err);
-        updateConnectionStatus('Gagal terhubung. Pastikan nama teman benar.', 'error');
-        setTimeout(promptForPeerConnection, 2000);
-      });
-      conn.on('close', () => {
-        console.log('Koneksi ditutup:', otherPeerId);
-        updateConnectionStatus('Teman terputus. Coba hubungkan lagi.', 'disconnected');
-        conn = null;
-        setTimeout(promptForPeerConnection, 2000);
-      });
+      socket.emit('join', { room: roomId, name: otherPeerName });
     } else {
       updateConnectionStatus('Menunggu teman bergabung...', 'waiting');
       setTimeout(promptForPeerConnection, 2000);
@@ -189,39 +153,27 @@ function promptForPeerConnection() {
 }
 
 function generateInvite() {
-  if (!roomId) {
-    alert('Room belum dibuat!');
-    return;
-  }
-  const baseUrl = window.location.href.includes('github.io') 
-    ? window.location.href.split('?')[0] 
-    : `${window.location.origin}${window.location.pathname}`;
-  const inviteLink = `${baseUrl}?room=${roomId}`;
+  const inviteLink = `${window.location.origin}${window.location.pathname}?room=${roomId}`;
   navigator.clipboard.writeText(inviteLink).then(() => {
     alert('Link undangan telah disalin!');
   }).catch(() => {
-    alert('Gagal menyalin link, silakan salin manual: ' + inviteLink);
+    alert('Gagal menyalin, salin manual: ' + inviteLink);
   });
 }
 
 function sendMessage() {
   const messageInput = document.getElementById('message-input');
   const message = messageInput.value.trim();
-  if (!message) {
-    console.log('Pesan kosong, tidak dikirim.');
-    return;
-  }
+  if (!message || !pc) return;
 
   const data = `${username}: ${message}`;
-  if (conn && conn.open) {
-    conn.send(data);
-    displayMessage(data, 'sent');
-    saveMessage(data);
-    console.log('Pesan terkirim:', data);
-  } else {
-    alert('Belum terhubung dengan teman! Tunggu hingga status "Terhubung".');
-    console.log('Gagal kirim pesan: Tidak terhubung.');
-  }
+  pc.getSenders().forEach(sender => {
+    if (sender.track && sender.track.kind === 'data') {
+      sender.send(data);
+    }
+  });
+  displayMessage(data, 'sent');
+  saveMessage(data);
   messageInput.value = '';
 }
 
@@ -255,9 +207,7 @@ function updateConnectionStatus(status, statusType) {
   statusElement.className = `status status-${statusType}`;
   statusElement.textContent = status;
   const existingStatus = document.getElementById('connection-status');
-  if (existingStatus) {
-    existingStatus.remove();
-  }
+  if (existingStatus) existingStatus.remove();
   const chatBox = document.getElementById('chat-box');
   chatBox.parentNode.insertBefore(statusElement, chatBox.nextSibling);
 }
@@ -266,9 +216,23 @@ if (roomId) {
   setTimeout(() => {
     if (!username) {
       username = prompt('Masukkan nama Anda untuk bergabung:');
-      if (username) {
-        startChat();
-      }
+      if (username) startChat();
     }
   }, 500);
 }
+
+// Event listener untuk Enter dan send-button
+document.getElementById('message-input').addEventListener('keydown', (event) => {
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    sendMessage();
+    document.querySelector('.send-button').classList.add('active');
+    setTimeout(() => document.querySelector('.send-button').classList.remove('active'), 300);
+  }
+});
+
+document.querySelector('.send-button').addEventListener('click', () => {
+  sendMessage();
+  document.querySelector('.send-button').classList.add('active');
+  setTimeout(() => document.querySelector('.send-button').classList.remove('active'), 300);
+});
