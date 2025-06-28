@@ -27,7 +27,7 @@ function startChat() {
   }
 
   peer = new Peer(roomId + '-' + username, {
-    host: '0.peerjs.com',
+    host: 'peerjs.xirsys.com', // Ganti ke server alternatif
     secure: true,
     port: 443,
     debug: 3,
@@ -37,8 +37,10 @@ function startChat() {
         { urls: 'stun:stun1.l.google.com:19302' },
         { urls: 'stun:stun2.l.google.com:19302' },
         { urls: 'stun:stun3.l.google.com:19302' },
-        { urls: 'turn:numb.viagenie.ca', credential: 'muazkh', username: 'webrtc@live.com' }
-      ]
+        { urls: 'turn:numb.viagenie.ca', credential: 'muazkh', username: 'webrtc@live.com' },
+        { urls: 'turn:relay.backups.cz', username: 'webrtc', credential: 'webrtc' } // Tambah TURN alternatif
+      ],
+      iceTransportPolicy: 'all' // Paksa semua kandidat ICE
     }
   });
 
@@ -61,8 +63,9 @@ function startChat() {
   peer.on('connection', (connection) => {
     if (!conn || !conn.open) {
       conn = connection;
+      console.log('Koneksi masuk dari:', conn.peer);
       conn.on('open', () => {
-        console.log('Koneksi masuk dari:', conn.peer);
+        console.log('Koneksi terbuka dengan:', conn.peer);
         updateConnectionStatus('Terhubung dengan teman!', 'connected');
       });
       conn.on('data', (data) => {
@@ -82,6 +85,8 @@ function startChat() {
         updateConnectionStatus('Teman terputus. Coba hubungkan lagi.', 'disconnected');
         conn = null;
       });
+    } else {
+      console.warn('Koneksi lain ditolak, hanya satu koneksi diizinkan.');
     }
   });
 
@@ -94,6 +99,10 @@ function startChat() {
     } else if (err.type === 'network') {
       console.log('Retrying connection in 2 seconds...');
       setTimeout(() => startChat(), 2000);
+    } else if (err.type === 'unavailable-id') {
+      console.log('ID sudah dipakai, generate ulang roomId...');
+      roomId = generateRoomId();
+      startChat();
     }
   });
 
@@ -245,11 +254,12 @@ function updateConnectionStatus(status, statusType) {
   statusElement.id = 'connection-status';
   statusElement.className = `status status-${statusType}`;
   statusElement.textContent = status;
-  const inviteLink = document.getElementById('invite-link');
-  if (document.getElementById('connection-status')) {
-    document.getElementById('connection-status').remove();
+  const existingStatus = document.getElementById('connection-status');
+  if (existingStatus) {
+    existingStatus.remove();
   }
-  inviteLink.insertAdjacentElement('afterend', statusElement);
+  const chatBox = document.getElementById('chat-box');
+  chatBox.parentNode.insertBefore(statusElement, chatBox.nextSibling);
 }
 
 if (roomId) {
