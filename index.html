@@ -3,32 +3,86 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chat P2P Kece</title>
-  <link rel="stylesheet" href="styles.css">
+  <title>Aksara - Aplikasi Catatan Sederhana</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preload" href="https://i.imgur.com/Ct0pzwl.png" as="image">
 </head>
 <body>
-  <div id="name-section">
-    <h2>Masukkan Nama Kamu</h2>
-    <input type="text" id="username" placeholder="Nama kamu..." required>
-    <button onclick="startChat()">Masuk Chat</button>
-  </div>
-  <div id="chat-section" style="display: none;">
-    <img src="https://i.imgur.com/4hLGS4J.png" alt="Aksara Logo" class="chat-logo">
-    <h2>Aksara</h2>
-    <div id="connection-status" class="status"></div>
-    <div class="invite-container">
-      <button onclick="generateInvite()">Undang Teman</button>
-      <div id="invite-link" class="invite-link"></div>
+  <header class="header">
+    <div class="header-left">
+      <button class="hamburger" aria-label="Toggle Sidebar">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M3 5H17M3 10H17M3 15H17" stroke="#FFD700" stroke-width="2"/>
+        </svg>
+      </button>
+      <img src="https://i.imgur.com/Ct0pzwl.png" alt="Aksara Logo" class="logo">
+      <span class="app-title">Aksara</span>
     </div>
-    <div id="chat-box"></div>
-    <div class="input-container">
-      <input type="text" id="message-input" placeholder="Ketik pesan...">
-      <button onclick="sendMessage()" class="send-button"></button>
+    <button class="done-btn">Done</button>
+  </header>
+
+  <div class="sidebar">
+    <div class="folders"></div>
+    <div class="sidebar-footer">
+      <button class="new-note-btn">+ Catatan Baru</button>
+      <button class="new-folder-btn">+ Folder</button>
     </div>
-    <audio id="notification-sound" src="https://freesound.org/data/previews/316/316847_4939433-lq.mp3"></audio>
   </div>
 
-  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+  <main class="main">
+    <div class="empty-state">
+      <span class="empty-icon">📝</span>
+      <p>Tidak ada catatan. Buat catatan baru!</p>
+    </div>
+    <input type="text" class="note-title" placeholder="Judul catatan...">
+    <div class="note-editor" contenteditable="true" data-placeholder="Mulai menulis di sini..."></div>
+  </main>
+
+  <div class="toolbar">
+    <button class="format-btn" data-command="bold" aria-label="Bold">B</button>
+    <button class="format-btn" data-command="italic" aria-label="Italic">I</button>
+    <button class="format-btn" data-command="underline" aria-label="Underline">U</button>
+    <button class="format-btn" data-command="strikeThrough" aria-label="Strikethrough">S</button>
+    <button class="format-btn" data-command="insertUnorderedList" aria-label="Bullet List">•</button>
+    <button class="format-btn" data-command="insertOrderedList" aria-label="Numbered List">1.</button>
+    <button class="format-btn" data-command="formatBlock" data-value="blockquote" aria-label="Blockquote">"</button>
+    <button class="format-btn" data-command="formatBlock" data-value="h1" aria-label="Heading 1">H1</button>
+    <button class="format-btn" data-command="createLink" aria-label="Insert Link">🔗</button>
+    <select class="font-select" aria-label="Font Selection">
+      <option value="SF Pro">SF Pro</option>
+      <option value="Helvetica">Helvetica</option>
+      <option value="Arial">Arial</option>
+      <option value="Courier New">Courier New</option>
+      <option value="Georgia">Georgia</option>
+      <option value="Times New Roman">Times New Roman</option>
+      <option value="Verdana">Verdana</option>
+      <option value="Trebuchet MS">Trebuchet MS</option>
+      <option value="Gill Sans">Gill Sans</option>
+      <option value="Optima">Optima</option>
+      <option value="Didot">Didot</option>
+      <option value="Avenir">Avenir</option>
+      <option value="American Typewriter">American Typewriter</option>
+      <option value="Chalkboard">Chalkboard</option>
+      <option value="Marker Felt">Marker Felt</option>
+      <option value="SF Mono">SF Mono</option>
+      <option value="SF Compact">SF Compact</option>
+    </select>
+    <input type="range" class="font-size-slider" min="12" max="24" value="16" aria-label="Font Size">
+  </div>
+
+  <div class="ios-modal" style="display: none;">
+    <div class="modal-content">
+      <h2 class="modal-title">Hapus Catatan?</h2>
+      <p class="modal-message"></p>
+      <div class="modal-buttons">
+        <button class="modal-cancel">Cancel</button>
+        <button class="modal-delete">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" style="display: none;"></div>
+
   <script src="script.js"></script>
 </body>
 </html>
