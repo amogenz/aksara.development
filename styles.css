@@ -1,3 +1,4 @@
+/* Reset dan pengaturan dasar */
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
@@ -9,6 +10,7 @@ body {
   flex-direction: column;
 }
 
+/* Header */
 .header {
   position: fixed;
   top: 0;
@@ -35,6 +37,7 @@ body {
   border: none;
   cursor: pointer;
   padding: 8px;
+  min-width: 44px; /* Touch-friendly */
 }
 
 .hamburger svg path {
@@ -65,9 +68,11 @@ body {
   border-radius: 20px;
   font-size: 16px;
   cursor: pointer;
+  min-width: 44px; /* Touch-friendly */
   transition: opacity 0.3s ease-in-out;
 }
 
+/* Sidebar */
 .sidebar {
   position: fixed;
   top: 60px;
@@ -107,6 +112,8 @@ body {
   align-items: center;
   cursor: pointer;
   padding: 8px;
+  font-size: 18px;
+  font-weight: bold;
 }
 
 .folder-header svg {
@@ -164,6 +171,7 @@ body {
   border: none;
   cursor: pointer;
   padding: 4px;
+  min-width: 44px; /* Touch-friendly */
 }
 
 .note-actions svg {
@@ -188,32 +196,42 @@ body {
   border-radius: 20px;
   font-size: 16px;
   cursor: pointer;
+  min-width: 44px; /* Touch-friendly */
 }
 
+/* Main Content */
 .main {
   flex: 1;
   margin-top: 60px;
   padding: 16px;
   overflow-y: auto;
   position: relative;
-}
-
-.main.empty .note-title,
-.main.empty .note-editor {
-  display: none;
-}
-
-.main:not(.empty) .empty-state {
-  display: none;
-}
-
-.empty-state {
   display: flex;
+  flex-direction: column;
+}
+
+/* Empty State */
+.empty-state {
+  display: none; /* Mulai dengan hidden */
   flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 100%;
   text-align: center;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.main.empty .empty-state {
+  display: flex; /* Hanya muncul saat .main memiliki kelas empty */
+}
+
+.main.empty .note-title,
+.main.empty .note-editor {
+  display: none; /* Sembunyikan judul dan editor saat empty */
 }
 
 .empty-icon {
@@ -224,6 +242,7 @@ body {
 .empty-state p {
   font-size: 16px;
   opacity: 0.4;
+  margin-top: 8px;
 }
 
 .note-title {
@@ -235,6 +254,7 @@ body {
   font-style: italic;
   padding: 16px 16px 8px;
   outline: none;
+  display: block; /* Pastikan selalu terlihat kecuali empty state */
 }
 
 .note-editor {
@@ -247,13 +267,16 @@ body {
   outline: none;
   line-height: 1.5;
   font-family: 'SF Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+  display: block; /* Pastikan selalu terlihat kecuali empty state */
 }
 
 .note-editor:empty::before {
   content: attr(data-placeholder);
   opacity: 0.2;
+  display: block;
 }
 
+/* Toolbar */
 .toolbar {
   position: fixed;
   bottom: 0;
@@ -269,6 +292,7 @@ body {
   transform: translateY(100%);
   transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
   will-change: opacity, transform;
+  z-index: 998;
 }
 
 .toolbar.show {
@@ -310,12 +334,14 @@ body {
   padding: 8px;
   border-radius: 8px;
   font-size: 16px;
+  min-width: 100px;
 }
 
 .font-size-slider {
   width: 100px;
 }
 
+/* Modal */
 .ios-modal {
   position: fixed;
   top: 0;
@@ -327,6 +353,12 @@ body {
   align-items: center;
   justify-content: center;
   z-index: 1001;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.ios-modal[style*="display: flex"] {
+  opacity: 1;
 }
 
 .modal-content {
@@ -377,6 +409,7 @@ body {
   cursor: pointer;
 }
 
+/* Toast */
 .toast {
   position: fixed;
   bottom: 16px;
@@ -387,6 +420,7 @@ body {
   border-radius: 8px;
   opacity: 0;
   transition: opacity 0.3s ease-in-out;
+  z-index: 1002;
 }
 
 .toast.show {
